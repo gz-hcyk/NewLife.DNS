@@ -1,65 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net45;netstandard2.0;net40</TargetFrameworks>
+    <TargetFrameworks>net45;net8.0</TargetFrameworks>
     <AssemblyName>NewLife.DNSServer</AssemblyName>
     <AssemblyTitle>新生命DNS代理服务器</AssemblyTitle>
     <Description>某个域名解析到哪个IP上，你说了算，如果你不指定，就由上级DNS服务器说了算</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>版权所有(C) 新生命开发团队 2002~2019</Copyright>
-    <Version>3.0.2019.0707</Version>
-    <FileVersion>3.0.2019.0707</FileVersion>
-    <AssemblyVersion>3.0.*</AssemblyVersion>
+    <Copyright>©2002-2025 NewLife</Copyright>
+    <VersionPrefix>4.0</VersionPrefix>
+    <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
+    <Version>$(VersionPrefix).$(VersionSuffix)</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(VersionPrefix).*</AssemblyVersion>
     <Deterministic>false</Deterministic>
-    <OutputPath>..\BinServer</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <OutputPath>..\Bin\Server</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
+    <NoWarn>1701;1702;NU5104;NETSDK1138;CS7035</NoWarn>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\BinServer</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\BinServer</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <DefineConstants>$(DefineConstants);NETSTANDARD2_0;__CORE__</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
-    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
-    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <PackageReference Include="NewLife.Core" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="NewLife.Core" Version="8.2.2019.706" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\NewLife.DNS\NewLife.DNS.csproj" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="NewLife.Agent">
-      <Version>8.2.2019.706</Version>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='net45' or '$(TargetFramework)'=='net40'">
-    <Reference Include="System.ServiceProcess" />
-  </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="del &quot;$(TargetDir)*.xml&quot; /q" />
-  </Target>
-
 </Project>
