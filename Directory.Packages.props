@@ -8,8 +8,10 @@
     <PackageVersion Include="Microsoft.AspNet.Mvc.zh-Hans" Version="5.2.6" />
     <PackageVersion Include="Microsoft.AspNet.Razor.zh-Hans" Version="3.2.6" />
     <PackageVersion Include="Microsoft.AspNet.WebPages.zh-Hans" Version="3.2.6" />
+    <PackageVersion Include="NewLife.Agent" Version="10.13.2025.604" />
     <PackageVersion Include="NewLife.Core" Version="11.5.2025.701" />
     <PackageVersion Include="NewLife.Cube" Version="6.5.2025.701" />
+    <PackageVersion Include="NewLife.Net" Version="4.4.2025.705" />
     <PackageVersion Include="NewLife.XCode" Version="11.19.2025.701" />
   </ItemGroup>
 </Project>

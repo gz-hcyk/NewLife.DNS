@@ -124,7 +124,7 @@ namespace NewLife.DNS.Entity
             {
                 var k = entity.Type;
 
-                var v = "{0} ({1:n0})".F(entity.QueryType, entity.ID);
+                var v = $"{entity.QueryType} ({entity.ID:n0})";
                 dic[k + ""] = v;
             }
             return dic;

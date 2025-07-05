@@ -1,14 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NewLife.DNS.Server;
 
-namespace NewLife.DNS.Server
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            AgentService.ServiceMain();
-        }
-    }
-}
+new AgentService().Main(args);

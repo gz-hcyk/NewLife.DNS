@@ -23,7 +23,15 @@
     <NoWarn>1701;1702;NU5104;NETSDK1138;CS7035</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NewLife.Core" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NewLife.Agent" />
+    <PackageReference Include="NewLife.Net" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.DNS\NewLife.DNS.csproj" />

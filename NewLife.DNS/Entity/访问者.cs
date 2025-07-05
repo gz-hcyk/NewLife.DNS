@@ -1,327 +1,251 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.Serialization;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife;
+using NewLife.Data;
 using XCode;
+using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-namespace NewLife.DNS.Entity
+namespace NewLife.DNS.Entity;
+
+/// <summary>访问者</summary>
+[Serializable]
+[DataObject]
+[Description("访问者")]
+[BindIndex("IX_Visitor_Name", false, "Name")]
+[BindTable("Visitor", Description = "访问者", ConnName = "DNS", DbType = DatabaseType.SqlServer)]
+public partial class Visitor
 {
-    /// <summary>访问者</summary>
-    [Serializable]
-    [DataObject]
-    [Description("访问者")]
-    [BindIndex("IX_Visitor_Name", false, "Name")]
-    [BindTable("Visitor", Description = "访问者", ConnName = "DNS", DbType = DatabaseType.SqlServer)]
-    public partial class Visitor : IVisitor
+    #region 属性
+    private Int32 _ID;
+    /// <summary>编号</summary>
+    [DisplayName("编号")]
+    [Description("编号")]
+    [DataObjectField(true, true, false, 0)]
+    [BindColumn("ID", "编号", "")]
+    public Int32 ID { get => _ID; set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } } }
+
+    private String _Name;
+    /// <summary>名称</summary>
+    [DisplayName("名称")]
+    [Description("名称")]
+    [DataObjectField(false, false, true, 50)]
+    [BindColumn("Name", "名称", "", Master = true)]
+    public String Name { get => _Name; set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } } }
+
+    private Int32 _Hits;
+    /// <summary>次数</summary>
+    [DisplayName("次数")]
+    [Description("次数")]
+    [DataObjectField(false, false, false, 0)]
+    [BindColumn("Hits", "次数", "")]
+    public Int32 Hits { get => _Hits; set { if (OnPropertyChanging("Hits", value)) { _Hits = value; OnPropertyChanged("Hits"); } } }
+
+    private String _LastDomainName;
+    /// <summary>最后域名</summary>
+    [DisplayName("最后域名")]
+    [Description("最后域名")]
+    [DataObjectField(false, false, true, 50)]
+    [BindColumn("LastDomainName", "最后域名", "")]
+    public String LastDomainName { get => _LastDomainName; set { if (OnPropertyChanging("LastDomainName", value)) { _LastDomainName = value; OnPropertyChanged("LastDomainName"); } } }
+
+    private DateTime _LastVisit;
+    /// <summary>最后访问</summary>
+    [DisplayName("最后访问")]
+    [Description("最后访问")]
+    [DataObjectField(false, false, true, 0)]
+    [BindColumn("LastVisit", "最后访问", "")]
+    public DateTime LastVisit { get => _LastVisit; set { if (OnPropertyChanging("LastVisit", value)) { _LastVisit = value; OnPropertyChanged("LastVisit"); } } }
+
+    private Int32 _CreateUserID;
+    /// <summary>创建者</summary>
+    [DisplayName("创建者")]
+    [Description("创建者")]
+    [DataObjectField(false, false, false, 0)]
+    [BindColumn("CreateUserID", "创建者", "")]
+    public Int32 CreateUserID { get => _CreateUserID; set { if (OnPropertyChanging("CreateUserID", value)) { _CreateUserID = value; OnPropertyChanged("CreateUserID"); } } }
+
+    private DateTime _CreateTime;
+    /// <summary>创建时间</summary>
+    [DisplayName("创建时间")]
+    [Description("创建时间")]
+    [DataObjectField(false, false, true, 0)]
+    [BindColumn("CreateTime", "创建时间", "")]
+    public DateTime CreateTime { get => _CreateTime; set { if (OnPropertyChanging("CreateTime", value)) { _CreateTime = value; OnPropertyChanged("CreateTime"); } } }
+
+    private String _CreateIP;
+    /// <summary>创建地址</summary>
+    [DisplayName("创建地址")]
+    [Description("创建地址")]
+    [DataObjectField(false, false, true, 50)]
+    [BindColumn("CreateIP", "创建地址", "")]
+    public String CreateIP { get => _CreateIP; set { if (OnPropertyChanging("CreateIP", value)) { _CreateIP = value; OnPropertyChanged("CreateIP"); } } }
+
+    private Int32 _UpdateUserID;
+    /// <summary>更新者</summary>
+    [DisplayName("更新者")]
+    [Description("更新者")]
+    [DataObjectField(false, false, false, 0)]
+    [BindColumn("UpdateUserID", "更新者", "")]
+    public Int32 UpdateUserID { get => _UpdateUserID; set { if (OnPropertyChanging("UpdateUserID", value)) { _UpdateUserID = value; OnPropertyChanged("UpdateUserID"); } } }
+
+    private DateTime _UpdateTime;
+    /// <summary>更新时间</summary>
+    [DisplayName("更新时间")]
+    [Description("更新时间")]
+    [DataObjectField(false, false, true, 0)]
+    [BindColumn("UpdateTime", "更新时间", "")]
+    public DateTime UpdateTime { get => _UpdateTime; set { if (OnPropertyChanging("UpdateTime", value)) { _UpdateTime = value; OnPropertyChanged("UpdateTime"); } } }
+
+    private String _UpdateIP;
+    /// <summary>更新地址</summary>
+    [DisplayName("更新地址")]
+    [Description("更新地址")]
+    [DataObjectField(false, false, true, 50)]
+    [BindColumn("UpdateIP", "更新地址", "")]
+    public String UpdateIP { get => _UpdateIP; set { if (OnPropertyChanging("UpdateIP", value)) { _UpdateIP = value; OnPropertyChanged("UpdateIP"); } } }
+    #endregion
+
+    #region 获取/设置 字段值
+    /// <summary>获取/设置 字段值</summary>
+    /// <param name="name">字段名</param>
+    /// <returns></returns>
+    public override Object this[String name]
     {
-        #region 属性
-        private Int32 _ID;
-        /// <summary>编号</summary>
-        [DisplayName("编号")]
-        [Description("编号")]
-        [DataObjectField(true, true, false, 10)]
-        [BindColumn(1, "ID", "编号", null, "int", 10, 0, false)]
-        public virtual Int32 ID
+        get => name switch
         {
-            get { return _ID; }
-            set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } }
-        }
-
-        private String _Name;
-        /// <summary>名称</summary>
-        [DisplayName("名称")]
-        [Description("名称")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn(2, "Name", "名称", null, "nvarchar(50)", 0, 0, true, Master=true)]
-        public virtual String Name
+            "ID" => _ID,
+            "Name" => _Name,
+            "Hits" => _Hits,
+            "LastDomainName" => _LastDomainName,
+            "LastVisit" => _LastVisit,
+            "CreateUserID" => _CreateUserID,
+            "CreateTime" => _CreateTime,
+            "CreateIP" => _CreateIP,
+            "UpdateUserID" => _UpdateUserID,
+            "UpdateTime" => _UpdateTime,
+            "UpdateIP" => _UpdateIP,
+            _ => base[name]
+        };
+        set
         {
-            get { return _Name; }
-            set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } }
-        }
-
-        private Int32 _Hits;
-        /// <summary>次数</summary>
-        [DisplayName("次数")]
-        [Description("次数")]
-        [DataObjectField(false, false, true, 10)]
-        [BindColumn(3, "Hits", "次数", null, "int", 10, 0, false)]
-        public virtual Int32 Hits
-        {
-            get { return _Hits; }
-            set { if (OnPropertyChanging(__.Hits, value)) { _Hits = value; OnPropertyChanged(__.Hits); } }
-        }
-
-        private String _LastDomainName;
-        /// <summary>最后域名</summary>
-        [DisplayName("最后域名")]
-        [Description("最后域名")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "LastDomainName", "最后域名", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String LastDomainName
-        {
-            get { return _LastDomainName; }
-            set { if (OnPropertyChanging(__.LastDomainName, value)) { _LastDomainName = value; OnPropertyChanged(__.LastDomainName); } }
-        }
-
-        private DateTime _LastVisit;
-        /// <summary>最后访问</summary>
-        [DisplayName("最后访问")]
-        [Description("最后访问")]
-        [DataObjectField(false, false, true, 3)]
-        [BindColumn(5, "LastVisit", "最后访问", null, "datetime", 3, 0, false)]
-        public virtual DateTime LastVisit
-        {
-            get { return _LastVisit; }
-            set { if (OnPropertyChanging(__.LastVisit, value)) { _LastVisit = value; OnPropertyChanged(__.LastVisit); } }
-        }
-
-        private Int32 _CreateUserID;
-        /// <summary>创建者</summary>
-        [DisplayName("创建者")]
-        [Description("创建者")]
-        [DataObjectField(false, false, true, 10)]
-        [BindColumn(6, "CreateUserID", "创建者", null, "int", 10, 0, false)]
-        public virtual Int32 CreateUserID
-        {
-            get { return _CreateUserID; }
-            set { if (OnPropertyChanging(__.CreateUserID, value)) { _CreateUserID = value; OnPropertyChanged(__.CreateUserID); } }
-        }
-
-        private DateTime _CreateTime;
-        /// <summary>创建时间</summary>
-        [DisplayName("创建时间")]
-        [Description("创建时间")]
-        [DataObjectField(false, false, true, 3)]
-        [BindColumn(7, "CreateTime", "创建时间", null, "datetime", 3, 0, false)]
-        public virtual DateTime CreateTime
-        {
-            get { return _CreateTime; }
-            set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } }
-        }
-
-        private String _CreateIP;
-        /// <summary>创建地址</summary>
-        [DisplayName("创建地址")]
-        [Description("创建地址")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn(8, "CreateIP", "创建地址", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String CreateIP
-        {
-            get { return _CreateIP; }
-            set { if (OnPropertyChanging(__.CreateIP, value)) { _CreateIP = value; OnPropertyChanged(__.CreateIP); } }
-        }
-
-        private Int32 _UpdateUserID;
-        /// <summary>更新者</summary>
-        [DisplayName("更新者")]
-        [Description("更新者")]
-        [DataObjectField(false, false, true, 10)]
-        [BindColumn(9, "UpdateUserID", "更新者", null, "int", 10, 0, false)]
-        public virtual Int32 UpdateUserID
-        {
-            get { return _UpdateUserID; }
-            set { if (OnPropertyChanging(__.UpdateUserID, value)) { _UpdateUserID = value; OnPropertyChanged(__.UpdateUserID); } }
-        }
-
-        private DateTime _UpdateTime;
-        /// <summary>更新时间</summary>
-        [DisplayName("更新时间")]
-        [Description("更新时间")]
-        [DataObjectField(false, false, true, 3)]
-        [BindColumn(10, "UpdateTime", "更新时间", null, "datetime", 3, 0, false)]
-        public virtual DateTime UpdateTime
-        {
-            get { return _UpdateTime; }
-            set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } }
-        }
-
-        private String _UpdateIP;
-        /// <summary>更新地址</summary>
-        [DisplayName("更新地址")]
-        [Description("更新地址")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn(11, "UpdateIP", "更新地址", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String UpdateIP
-        {
-            get { return _UpdateIP; }
-            set { if (OnPropertyChanging(__.UpdateIP, value)) { _UpdateIP = value; OnPropertyChanged(__.UpdateIP); } }
-        }
-        #endregion
-
-        #region 获取/设置 字段值
-        /// <summary>
-        /// 获取/设置 字段值。
-        /// 一个索引，基类使用反射实现。
-        /// 派生实体类可重写该索引，以避免反射带来的性能损耗
-        /// </summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        public override Object this[String name]
-        {
-            get
+            switch (name)
             {
-                switch (name)
-                {
-                    case __.ID : return _ID;
-                    case __.Name : return _Name;
-                    case __.Hits : return _Hits;
-                    case __.LastDomainName : return _LastDomainName;
-                    case __.LastVisit : return _LastVisit;
-                    case __.CreateUserID : return _CreateUserID;
-                    case __.CreateTime : return _CreateTime;
-                    case __.CreateIP : return _CreateIP;
-                    case __.UpdateUserID : return _UpdateUserID;
-                    case __.UpdateTime : return _UpdateTime;
-                    case __.UpdateIP : return _UpdateIP;
-                    default: return base[name];
-                }
-            }
-            set
-            {
-                switch (name)
-                {
-                    case __.ID : _ID = Convert.ToInt32(value); break;
-                    case __.Name : _Name = Convert.ToString(value); break;
-                    case __.Hits : _Hits = Convert.ToInt32(value); break;
-                    case __.LastDomainName : _LastDomainName = Convert.ToString(value); break;
-                    case __.LastVisit : _LastVisit = Convert.ToDateTime(value); break;
-                    case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
-                    case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
-                    case __.CreateIP : _CreateIP = Convert.ToString(value); break;
-                    case __.UpdateUserID : _UpdateUserID = Convert.ToInt32(value); break;
-                    case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
-                    case __.UpdateIP : _UpdateIP = Convert.ToString(value); break;
-                    default: base[name] = value; break;
-                }
+                case "ID": _ID = value.ToInt(); break;
+                case "Name": _Name = Convert.ToString(value); break;
+                case "Hits": _Hits = value.ToInt(); break;
+                case "LastDomainName": _LastDomainName = Convert.ToString(value); break;
+                case "LastVisit": _LastVisit = value.ToDateTime(); break;
+                case "CreateUserID": _CreateUserID = value.ToInt(); break;
+                case "CreateTime": _CreateTime = value.ToDateTime(); break;
+                case "CreateIP": _CreateIP = Convert.ToString(value); break;
+                case "UpdateUserID": _UpdateUserID = value.ToInt(); break;
+                case "UpdateTime": _UpdateTime = value.ToDateTime(); break;
+                case "UpdateIP": _UpdateIP = Convert.ToString(value); break;
+                default: base[name] = value; break;
             }
         }
-        #endregion
-
-        #region 字段名
-        /// <summary>取得访问者字段信息的快捷方式</summary>
-        public partial class _
-        {
-            ///<summary>编号</summary>
-            public static readonly Field ID = FindByName(__.ID);
-
-            ///<summary>名称</summary>
-            public static readonly Field Name = FindByName(__.Name);
-
-            ///<summary>次数</summary>
-            public static readonly Field Hits = FindByName(__.Hits);
-
-            ///<summary>最后域名</summary>
-            public static readonly Field LastDomainName = FindByName(__.LastDomainName);
-
-            ///<summary>最后访问</summary>
-            public static readonly Field LastVisit = FindByName(__.LastVisit);
-
-            ///<summary>创建者</summary>
-            public static readonly Field CreateUserID = FindByName(__.CreateUserID);
-
-            ///<summary>创建时间</summary>
-            public static readonly Field CreateTime = FindByName(__.CreateTime);
-
-            ///<summary>创建地址</summary>
-            public static readonly Field CreateIP = FindByName(__.CreateIP);
-
-            ///<summary>更新者</summary>
-            public static readonly Field UpdateUserID = FindByName(__.UpdateUserID);
-
-            ///<summary>更新时间</summary>
-            public static readonly Field UpdateTime = FindByName(__.UpdateTime);
-
-            ///<summary>更新地址</summary>
-            public static readonly Field UpdateIP = FindByName(__.UpdateIP);
-
-            static Field FindByName(String name) { return Meta.Table.FindByName(name); }
-        }
-
-        /// <summary>取得访问者字段名称的快捷方式</summary>
-        partial class __
-        {
-            ///<summary>编号</summary>
-            public const String ID = "ID";
-
-            ///<summary>名称</summary>
-            public const String Name = "Name";
-
-            ///<summary>次数</summary>
-            public const String Hits = "Hits";
-
-            ///<summary>最后域名</summary>
-            public const String LastDomainName = "LastDomainName";
-
-            ///<summary>最后访问</summary>
-            public const String LastVisit = "LastVisit";
-
-            ///<summary>创建者</summary>
-            public const String CreateUserID = "CreateUserID";
-
-            ///<summary>创建时间</summary>
-            public const String CreateTime = "CreateTime";
-
-            ///<summary>创建地址</summary>
-            public const String CreateIP = "CreateIP";
-
-            ///<summary>更新者</summary>
-            public const String UpdateUserID = "UpdateUserID";
-
-            ///<summary>更新时间</summary>
-            public const String UpdateTime = "UpdateTime";
-
-            ///<summary>更新地址</summary>
-            public const String UpdateIP = "UpdateIP";
-
-        }
-        #endregion
     }
+    #endregion
 
-    /// <summary>访问者接口</summary>
-    public partial interface IVisitor
+    #region 关联映射
+    #endregion
+
+    #region 扩展查询
+    /// <summary>根据名称查找</summary>
+    /// <param name="name">名称</param>
+    /// <returns>实体列表</returns>
+    public static IList<Visitor> FindAllByName(String name)
     {
-        #region 属性
+        if (name.IsNullOrEmpty()) return [];
+
+        // 实体缓存
+        if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => e.Name.EqualIgnoreCase(name));
+
+        return FindAll(_.Name == name);
+    }
+    #endregion
+
+    #region 字段名
+    /// <summary>取得访问者字段信息的快捷方式</summary>
+    public partial class _
+    {
         /// <summary>编号</summary>
-        Int32 ID { get; set; }
+        public static readonly Field ID = FindByName("ID");
 
         /// <summary>名称</summary>
-        String Name { get; set; }
+        public static readonly Field Name = FindByName("Name");
 
         /// <summary>次数</summary>
-        Int32 Hits { get; set; }
+        public static readonly Field Hits = FindByName("Hits");
 
         /// <summary>最后域名</summary>
-        String LastDomainName { get; set; }
+        public static readonly Field LastDomainName = FindByName("LastDomainName");
 
         /// <summary>最后访问</summary>
-        DateTime LastVisit { get; set; }
+        public static readonly Field LastVisit = FindByName("LastVisit");
 
         /// <summary>创建者</summary>
-        Int32 CreateUserID { get; set; }
+        public static readonly Field CreateUserID = FindByName("CreateUserID");
 
         /// <summary>创建时间</summary>
-        DateTime CreateTime { get; set; }
+        public static readonly Field CreateTime = FindByName("CreateTime");
 
         /// <summary>创建地址</summary>
-        String CreateIP { get; set; }
+        public static readonly Field CreateIP = FindByName("CreateIP");
 
         /// <summary>更新者</summary>
-        Int32 UpdateUserID { get; set; }
+        public static readonly Field UpdateUserID = FindByName("UpdateUserID");
 
         /// <summary>更新时间</summary>
-        DateTime UpdateTime { get; set; }
+        public static readonly Field UpdateTime = FindByName("UpdateTime");
 
         /// <summary>更新地址</summary>
-        String UpdateIP { get; set; }
-        #endregion
+        public static readonly Field UpdateIP = FindByName("UpdateIP");
 
-        #region 获取/设置 字段值
-        /// <summary>获取/设置 字段值。</summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        Object this[String name] { get; set; }
-        #endregion
+        static Field FindByName(String name) => Meta.Table.FindByName(name);
     }
+
+    /// <summary>取得访问者字段名称的快捷方式</summary>
+    public partial class __
+    {
+        /// <summary>编号</summary>
+        public const String ID = "ID";
+
+        /// <summary>名称</summary>
+        public const String Name = "Name";
+
+        /// <summary>次数</summary>
+        public const String Hits = "Hits";
+
+        /// <summary>最后域名</summary>
+        public const String LastDomainName = "LastDomainName";
+
+        /// <summary>最后访问</summary>
+        public const String LastVisit = "LastVisit";
+
+        /// <summary>创建者</summary>
+        public const String CreateUserID = "CreateUserID";
+
+        /// <summary>创建时间</summary>
+        public const String CreateTime = "CreateTime";
+
+        /// <summary>创建地址</summary>
+        public const String CreateIP = "CreateIP";
+
+        /// <summary>更新者</summary>
+        public const String UpdateUserID = "UpdateUserID";
+
+        /// <summary>更新时间</summary>
+        public const String UpdateTime = "UpdateTime";
+
+        /// <summary>更新地址</summary>
+        public const String UpdateIP = "UpdateIP";
+    }
+    #endregion
 }

@@ -1,86 +1,126 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.2.6186.20813">
-  <Table Name="Visitor" Description="访问者" DbType="SqlServer">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称" />
-      <Column Name="Hits" DataType="Int32" Description="次数" />
-      <Column Name="LastDomainName" DataType="String" Description="最后域名" />
-      <Column Name="LastVisit" DataType="DateTime" Description="最后访问" />
-      <Column Name="CreateUserID" DataType="Int32" Description="创建者" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="UpdateUserID" DataType="Int32" Description="更新者" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
-      <Column Name="UpdateIP" DataType="String" Description="更新地址" />
-    </Columns>
-    <Indexes>
-      <Index Columns="Name" />
-    </Indexes>
-  </Table>
-  <Table Name="Rule" Description="规则" DbType="SqlServer">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称" />
-      <Column Name="Type" DataType="Int32" Description="类型" />
-      <Column Name="Address" DataType="String" Description="地址" />
-      <Column Name="StartDate" DataType="DateTime" Description="开始日期" />
-      <Column Name="EndDate" DataType="DateTime" Description="结束日期" />
-      <Column Name="StartTime" DataType="Int32" Description="开始时间" />
-      <Column Name="EndTime" DataType="Int32" Description="结束时间" />
-      <Column Name="Enable" DataType="Boolean" Description="启用" />
-      <Column Name="Hits" DataType="Int32" Description="次数" />
-      <Column Name="StatID" DataType="Int32" Description="统计" />
-      <Column Name="CreateUserID" DataType="Int32" Description="创建者" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="UpdateUserID" DataType="Int32" Description="更新者" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
-      <Column Name="UpdateIP" DataType="String" Description="更新地址" />
-    </Columns>
-    <Indexes>
-      <Index Columns="Name" />
-      <Index Columns="Type" />
-    </Indexes>
-  </Table>
-  <Table Name="Record" Description="记录" DbType="SqlServer">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Type" DataType="Int32" Description="类型" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称" />
-      <Column Name="Address" DataType="String" Description="地址" />
-      <Column Name="TTL" DataType="DateTime" Description="生存时间" />
-      <Column Name="Parent" DataType="String" Description="父级" />
-      <Column Name="Hits" DataType="Int32" Description="次数" />
-      <Column Name="StatID" DataType="Int32" Description="统计" />
-      <Column Name="Next" DataType="DateTime" Description="下次更新" />
-      <Column Name="CreateUserID" DataType="Int32" Description="创建者" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="UpdateUserID" DataType="Int32" Description="更新者" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
-      <Column Name="UpdateIP" DataType="String" Description="更新地址" />
-    </Columns>
-    <Indexes>
-      <Index Columns="Type" />
-    </Indexes>
-  </Table>
-  <Table Name="History" Description="历史" ConnName="History" DbType="SqlServer">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Type" DataType="Int32" Description="类型" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称" />
-      <Column Name="Address" DataType="String" Description="地址" />
-      <Column Name="UserIP" DataType="String" Description="用户地址" />
-      <Column Name="Protocol" DataType="Int32" Description="协议" />
-      <Column Name="CreateUserID" DataType="Int32" Description="创建者" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="CreateIP" DataType="String" Description="创建地址" />
-    </Columns>
-    <Indexes>
-      <Index Columns="Name" />
-      <Index Columns="Type" />
-      <Index Columns="UserIP" />
-    </Indexes>
-  </Table>
-</Tables>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<EntityModel xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="https://newlifex.com https://newlifex.com/Model202407.xsd" Version="9.2.6186.20813" Document="https://newlifex.com/xcode/model" xmlns="https://newlifex.com/Model202407.xsd">
+  <Option>
+    <!--类名模板。其中{name}替换为Table.Name，如{name}Model/I{name}Dto等-->
+    <ClassNameTemplate />
+    <!--显示名模板。其中{displayName}替换为Table.DisplayName-->
+    <DisplayNameTemplate />
+    <!--基类。可能包含基类和接口，其中{name}替换为Table.Name-->
+    <BaseClass />
+    <!--命名空间-->
+    <Namespace>NewLife.DNS.Entity</Namespace>
+    <!--输出目录-->
+    <Output>.\Entity</Output>
+    <!--是否使用中文文件名。默认false-->
+    <ChineseFileName>True</ChineseFileName>
+    <!--用于生成Copy函数的参数类型。例如{name}或I{name}-->
+    <ModelNameForCopy />
+    <!--带有索引器。实现IModel接口-->
+    <HasIModel>False</HasIModel>
+    <!--可为null上下文。生成String?等-->
+    <Nullable>False</Nullable>
+    <!--数据库连接名-->
+    <ConnName>DNS</ConnName>
+    <!--模型类模版。设置后生成模型类，用于接口数据传输，例如{name}Model-->
+    <ModelClass />
+    <!--模型类输出目录。默认当前目录的Models子目录-->
+    <ModelsOutput>.\Models\</ModelsOutput>
+    <!--模型接口模版。设置后生成模型接口，用于约束模型类和实体类，例如I{name}-->
+    <ModelInterface />
+    <!--模型接口输出目录。默认当前目录的Interfaces子目录-->
+    <InterfacesOutput>.\Interfaces\</InterfacesOutput>
+    <!--用户实体转为模型类的模型类。例如{name}或{name}DTO-->
+    <ModelNameForToModel />
+    <!--命名格式。Default/Upper/Lower/Underline-->
+    <NameFormat>Default</NameFormat>
+    <!--魔方区域显示名-->
+    <DisplayName />
+    <!--魔方控制器输出目录-->
+    <CubeOutput />
+  </Option>
+  <Tables>
+    <Table Name="Visitor" Description="访问者" DbType="SqlServer">
+      <Columns>
+        <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+        <Column Name="Name" DataType="String" Master="True" Description="名称" />
+        <Column Name="Hits" DataType="Int32" Description="次数" />
+        <Column Name="LastDomainName" DataType="String" Description="最后域名" />
+        <Column Name="LastVisit" DataType="DateTime" Description="最后访问" />
+        <Column Name="CreateUserID" DataType="Int32" Description="创建者" />
+        <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+        <Column Name="CreateIP" DataType="String" Description="创建地址" />
+        <Column Name="UpdateUserID" DataType="Int32" Description="更新者" />
+        <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+        <Column Name="UpdateIP" DataType="String" Description="更新地址" />
+      </Columns>
+      <Indexes>
+        <Index Columns="Name" />
+      </Indexes>
+    </Table>
+    <Table Name="Rule" Description="规则" DbType="SqlServer">
+      <Columns>
+        <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+        <Column Name="Name" DataType="String" Master="True" Description="名称" />
+        <Column Name="Type" DataType="Int32" Description="类型" />
+        <Column Name="Address" DataType="String" Description="地址" />
+        <Column Name="StartDate" DataType="DateTime" Description="开始日期" />
+        <Column Name="EndDate" DataType="DateTime" Description="结束日期" />
+        <Column Name="StartTime" DataType="Int32" Description="开始时间" />
+        <Column Name="EndTime" DataType="Int32" Description="结束时间" />
+        <Column Name="Enable" DataType="Boolean" Description="启用" />
+        <Column Name="Hits" DataType="Int32" Description="次数" />
+        <Column Name="StatID" DataType="Int32" Description="统计" />
+        <Column Name="CreateUserID" DataType="Int32" Description="创建者" />
+        <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+        <Column Name="CreateIP" DataType="String" Description="创建地址" />
+        <Column Name="UpdateUserID" DataType="Int32" Description="更新者" />
+        <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+        <Column Name="UpdateIP" DataType="String" Description="更新地址" />
+      </Columns>
+      <Indexes>
+        <Index Columns="Name" />
+        <Index Columns="Type" />
+      </Indexes>
+    </Table>
+    <Table Name="Record" Description="记录" DbType="SqlServer">
+      <Columns>
+        <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+        <Column Name="Type" DataType="Int32" Description="类型" />
+        <Column Name="Name" DataType="String" Master="True" Description="名称" />
+        <Column Name="Address" DataType="String" Description="地址" />
+        <Column Name="Ttl" DataType="DateTime" Description="生存时间" />
+        <Column Name="Parent" DataType="String" Description="父级" />
+        <Column Name="Hits" DataType="Int32" Description="次数" />
+        <Column Name="StatID" DataType="Int32" Description="统计" />
+        <Column Name="Next" DataType="DateTime" Description="下次更新" />
+        <Column Name="CreateUserID" DataType="Int32" Description="创建者" />
+        <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+        <Column Name="CreateIP" DataType="String" Description="创建地址" />
+        <Column Name="UpdateUserID" DataType="Int32" Description="更新者" />
+        <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+        <Column Name="UpdateIP" DataType="String" Description="更新地址" />
+      </Columns>
+      <Indexes>
+        <Index Columns="Type" />
+      </Indexes>
+    </Table>
+    <Table Name="History" Description="历史" ConnName="History" DbType="SqlServer">
+      <Columns>
+        <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+        <Column Name="Type" DataType="Int32" Description="类型" />
+        <Column Name="Name" DataType="String" Master="True" Description="名称" />
+        <Column Name="Address" DataType="String" Description="地址" />
+        <Column Name="UserIP" DataType="String" Description="用户地址" />
+        <Column Name="Protocol" DataType="Int32" Description="协议" />
+        <Column Name="CreateUserID" DataType="Int32" Description="创建者" />
+        <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+        <Column Name="CreateIP" DataType="String" Description="创建地址" />
+      </Columns>
+      <Indexes>
+        <Index Columns="Name" />
+        <Index Columns="Type" />
+        <Index Columns="UserIP" />
+      </Indexes>
+    </Table>
+  </Tables>
+</EntityModel>
