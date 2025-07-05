@@ -1,6 +1,7 @@
 ﻿using NewLife.Cube;
 using NewLife.Cube.WebMiddleware;
 using NewLife.Log;
+using Stardust;
 
 XTrace.UseConsole();
 
@@ -27,7 +28,5 @@ app.UseAuthorization();
 //app.UseResponseCompression();
 //app.MapControllerRoute(name: "default", pattern: "{controller=Index}/{action=Index}/{id?}");
 //app.MapControllerRoute(name: "default2", pattern: "{area=Admin}/{controller=Index}/{action=Index}/{id?}");
-
-app.RegisterService("SSO", null, builder.Environment.EnvironmentName, "/cube/info");
 
 app.Run();

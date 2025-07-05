@@ -1,0 +1,17 @@
+﻿@using NewLife;
+@using NewLife.Cube;
+@using NewLife.DNS
+@using NewLife.DNS.Entity
+@using NewLife.Web;
+@using XCode;
+@using XCode.Configuration;
+@using XCode.Membership;
+@{
+    var fact = ViewBag.Factory as IEntityFactory;
+    var page = ViewBag.Page as Pager;
+}
+<div class="form-group">
+    <label for="type" class="control-label">类型：</label>
+    @Html.ForDropDownList("type", EnumHelper.GetDescriptions(typeof(QueryType)), page["type"], "全部", true)
+</div>
+@await Html.PartialAsync("_DateRange")

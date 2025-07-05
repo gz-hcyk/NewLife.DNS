@@ -1,0 +1,24 @@
+﻿@using NewLife;
+@using NewLife.Cube;
+@using NewLife.DNS.Entity
+@using NewLife.Web;
+@using XCode;
+@using XCode.Configuration;
+@using XCode.Membership;
+@{
+    var fact = ViewBag.Factory as IEntityFactory;
+    var page = ViewBag.Page as Pager;
+}
+<div class="form-group">
+    <label for="type" class="control-label">类型：</label>
+    @Html.ForDropDownList("type", History.FindAllTypes(), page["type"], "全部", true)
+</div>
+<div class="form-group">
+    <label for="name" class="control-label">域名：</label>
+    @Html.ForDropDownList("name", History.FindAllNames(), page["name"], "全部", true)
+</div>
+<div class="form-group">
+    <label for="user" class="control-label">用户：</label>
+    @Html.ForDropDownList("user", History.FindAllUsers(), page["user"], "全部", true)
+</div>
+@await Html.PartialAsync("_DateRange")

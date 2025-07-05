@@ -1,12 +1,10 @@
-﻿using System.ComponentModel;
-using System.Web.Mvc;
-using NewLife.Cube;
+﻿using NewLife.Cube;
+using System.ComponentModel;
 
-namespace NewLife.DNS.Web
+namespace NewLife.DNS.Web;
+
+[DisplayName("DNS服务器")]
+public class DNSArea : AreaBase
 {
-    [DisplayName("DNS服务器")]
-    public class DNSAreaRegistration : AreaRegistrationBase 
-    {
-        
-    }
+    public DNSArea() : base(nameof(DNSArea).TrimEnd("Area")) { }
 }

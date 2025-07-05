@@ -24,11 +24,10 @@
     <Content Include="favicon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NewLife.DNS\NewLife.DNS.csproj" />
+    <PackageReference Include="NewLife.Cube.Core" />
+    <PackageReference Include="NewLife.Stardust.Extensions" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NewLife.Core" />
-    <PackageReference Include="NewLife.Cube" />
-    <PackageReference Include="NewLife.XCode" />
+    <ProjectReference Include="..\NewLife.DNS\NewLife.DNS.csproj" />
   </ItemGroup>
 </Project>
