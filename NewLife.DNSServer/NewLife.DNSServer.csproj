@@ -6,7 +6,7 @@
     <AssemblyTitle>新生命DNS代理服务器</AssemblyTitle>
     <Description>某个域名解析到哪个IP上，你说了算，如果你不指定，就由上级DNS服务器说了算</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2025 NewLife</Copyright>
+    <Copyright>©2002-2026 NewLife</Copyright>
     <VersionPrefix>4.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
