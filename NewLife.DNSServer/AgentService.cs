@@ -44,12 +44,20 @@ public class AgentService : ServiceBase
 
         var set = Setting.Current;
 
-        // 启动服务器
-        var svr = new DNSServer();
+        // 启动服务器。RoutedDnsServer 在 OnRequest 期间提供客户端来源地址。
+        var svr = new RoutedDnsServer();
         if (set.Debug) svr.Log = XTrace.Log;
         //svr.Parent = set.DNSServer + "," + svr.Parent;
         svr.Parents.AddRange(svr.GetLocalDNS());
         svr.SetParents(set.DNSServer);
+
+        var routes = DnsRouteTable.Parse(set.DNSRoutes);
+        foreach (var line in routes.Warnings)
+            XTrace.WriteLine(line);
+        svr.Routes = routes;
+        if (routes.Rules.Count > 0)
+            XTrace.WriteLine("已启用来源路由 {0} 条", routes.Rules.Count);
+
         svr.OnRequest += Server_OnRequest;
         svr.OnResponse += Server_OnResponse;
         svr.OnNew += Server_OnNew;
@@ -79,11 +87,12 @@ public class AgentService : ServiceBase
         var dns = e.Request;
         if (dns == null) return;
 
-        // 查询规则
+        // 本地指定规则优先：某个域名解析到哪个 IP，由规则说了算
         var rs = CheckRule(dns);
 
-        // 查询记录
-        if (rs == null) rs = CheckRecord(dns);
+        // 命中来源路由时不使用全局记录缓存，避免别的上级的结果串到这个客户端。
+        var routed = rs == null && sender is RoutedDnsServer server && server.Routes.Match(RoutedDnsServer.CurrentClient) != null;
+        if (rs == null && !routed) rs = CheckRecord(dns);
 
         if (rs != null) e.Response = rs;
     }
