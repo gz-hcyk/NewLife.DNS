@@ -58,6 +58,13 @@ public class AgentService : ServiceBase
         if (routes.Rules.Count > 0)
             XTrace.WriteLine("已启用来源路由 {0} 条", routes.Rules.Count);
 
+        var groups = DnsDomainGroupTable.Parse(set.DomainGroups);
+        foreach (var line in groups.Warnings)
+            XTrace.WriteLine(line);
+        svr.DomainGroups = groups;
+        if (groups.Groups.Count > 0)
+            XTrace.WriteLine("已启用域名组 {0} 个", groups.Groups.Count);
+
         svr.OnRequest += Server_OnRequest;
         svr.OnResponse += Server_OnResponse;
         svr.OnNew += Server_OnNew;
@@ -90,9 +97,10 @@ public class AgentService : ServiceBase
         // 本地指定规则优先：某个域名解析到哪个 IP，由规则说了算
         var rs = CheckRule(dns);
 
-        // 命中来源路由时不使用全局记录缓存，避免别的上级的结果串到这个客户端。
-        var routed = rs == null && sender is RoutedDnsServer server && server.Routes.Match(RoutedDnsServer.CurrentClient) != null;
-        if (rs == null && !routed) rs = CheckRecord(dns);
+        // 命中域名组或来源路由时不使用全局记录缓存，避免别的上级的结果串进来。
+        var name = dns.Questions != null && dns.Questions.Length > 0 ? dns.Questions[0].Name : null;
+        var isolated = rs == null && sender is RoutedDnsServer routed && routed.IsolatesCache(name, RoutedDnsServer.CurrentClient);
+        if (rs == null && !isolated) rs = CheckRecord(dns);
 
         if (rs != null) e.Response = rs;
     }

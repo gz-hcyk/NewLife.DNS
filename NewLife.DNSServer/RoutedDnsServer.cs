@@ -9,9 +9,10 @@ using NewLife.Net.DNS;
 namespace NewLife.DNS.Server;
 
 /// <summary>
-/// 按客户端来源选择上级的 DNS 代理。
-/// 引用的 NewLife.Net 中 DNS 报文读写是空实现，因此这里直接转发原始报文：
-/// 命中 <see cref="Routes"/> 时发给该规则的上级，否则发给 <see cref="DNSServer.Parents"/>。
+/// 按域名组和客户端来源选择上级的 DNS 代理。
+/// 引用的 NewLife.Net 中 DNS 报文读写是空实现，因此这里直接转发原始报文。
+/// 优先级：本地规则，域名组 <see cref="DomainGroups"/>，来源路由 <see cref="Routes"/>，最后 <see cref="DNSServer.Parents"/>。
+/// 域名组或来源路由命中后，该组上级全部无应答时返回 SERVFAIL，不再改走下一级。
 /// </summary>
 public class RoutedDnsServer : DNSServer
 {
@@ -24,10 +25,24 @@ public class RoutedDnsServer : DNSServer
     /// <summary>当前线程正在处理的客户端来源地址。</summary>
     public static IPAddress CurrentClient => _client;
 
-    /// <summary>来源路由。空表表示全部走 <see cref="DNSServer.Parents"/>。</summary>
+    /// <summary>来源路由。空表表示不按来源选择上级。</summary>
     public DnsRouteTable Routes { get; set; } = DnsRouteTable.Parse(null);
 
-    /// <summary>接收查询，先给本地规则机会，再按来源或默认上级转发原始报文。</summary>
+    /// <summary>域名组。空表表示不按域名选择上级。</summary>
+    public DnsDomainGroupTable DomainGroups { get; set; } = DnsDomainGroupTable.Parse(null);
+
+    /// <summary>该查询是否应避开全局记录缓存。</summary>
+    /// <param name="name">查询域名。大小写和末尾点不影响判断</param>
+    /// <param name="client">客户端来源地址，可为 null</param>
+    /// <returns>命中域名组或来源路由时为 true。默认上级仍允许使用全局缓存</returns>
+    /// <remarks>不同上级得到的结果不能从同一份全局记录缓存读出。域名组优先于来源路由，两者命中任一即隔离。</remarks>
+    public Boolean IsolatesCache(String name, IPAddress client)
+    {
+        if (DomainGroups != null && DomainGroups.Match(name) != null) return true;
+        return Routes != null && Routes.Match(client) != null;
+    }
+
+    /// <summary>接收查询。先给本地规则机会，再按域名组、来源或默认上级转发原始报文。</summary>
     protected override void OnReceive(INetSession session, IPacket pk)
     {
         var isTcp = session?.Session?.Local?.IsTcp ?? false;
@@ -44,6 +59,7 @@ public class RoutedDnsServer : DNSServer
                 return;
             }
 
+            var qname = DnsMessage.TryGetQuestionName(message);
             var request = DnsMessage.TryParse(message);
             DNSEntity local = null;
             if (request != null)
@@ -53,15 +69,17 @@ public class RoutedDnsServer : DNSServer
                 local = args.Response;
             }
 
-            var route = Routes?.Match(_client);
+            var group = DomainGroups?.Match(qname);
+            var route = group == null ? Routes?.Match(_client) : null;
             Byte[] answer = null;
             if (local != null)
                 answer = DnsMessage.TryWrite(message, local) ?? DnsRelay.ServFail(message);
 
             if (answer == null)
             {
-                var servers = route != null ? route.Servers : Parents;
-                if (route == null && (servers == null || servers.Count == 0))
+                var pinned = group != null || route != null;
+                var servers = group != null ? group.Servers : route != null ? route.Servers : Parents;
+                if (!pinned && (servers == null || servers.Count == 0))
                 {
                     base.OnReceive(session, pk);
                     calledBase = true;
