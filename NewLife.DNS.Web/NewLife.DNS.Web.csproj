@@ -29,5 +29,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.DNS\NewLife.DNS.csproj" />
+    <ProjectReference Include="..\NewLife.DNSServer\NewLife.DNSServer.csproj" />
   </ItemGroup>
 </Project>
