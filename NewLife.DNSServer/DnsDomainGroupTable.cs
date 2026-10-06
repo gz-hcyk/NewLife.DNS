@@ -218,6 +218,21 @@ public sealed class DnsDomainGroupTable
         }
     }
 
+    /// <summary>按与转发相同的规则查找域名列表文件。</summary>
+    /// <param name="path">file: 或 @ 后面的相对路径，也可直接写路径</param>
+    /// <param name="baseDirectory">优先查找的目录，可为 null</param>
+    /// <returns>存在的文件完整路径；找不到时返回 null</returns>
+    public static String LocateDomainFile(String path, String baseDirectory)
+    {
+        if (String.IsNullOrWhiteSpace(path)) return null;
+        var text = path.Trim().Trim('"');
+        if (text.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+            text = text.Substring(5).Trim();
+        else if (text.Length > 1 && text[0] == '@')
+            text = text.Substring(1).Trim();
+        return FindFile(text, baseDirectory);
+    }
+
     static String FindFile(String path, String baseDirectory)
     {
         if (Path.IsPathRooted(path)) return File.Exists(path) ? path : null;

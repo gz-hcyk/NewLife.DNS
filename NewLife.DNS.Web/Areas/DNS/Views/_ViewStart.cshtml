@@ -1,0 +1,5 @@
+@{
+    var theme = NewLife.Configuration.Config<NewLife.Cube.CubeSetting>.Current.Theme;
+    if (String.IsNullOrEmpty(theme)) theme = "ACE";
+    Layout = "~/Views/" + theme + "/_Layout.cshtml";
+}

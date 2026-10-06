@@ -7,6 +7,7 @@ using Xunit;
 
 namespace NewLife.DNSServer.Tests;
 
+[Collection("LoopbackDns")]
 public class DomainGroupForwardTests
 {
     [Fact(DisplayName = "命中域名组只访问组上级，未命中走来源路由")]
