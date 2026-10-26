@@ -5,6 +5,20 @@
 国内 https://git.NewLifeX.com/NewLife/NewLife.DNS  
 国外 https://github.com/NewLifeX/NewLife.DNS  
 
+## 按来源 IP 选择上级 DNS
+
+默认上级仍是 `Config/DNS.config` 里的 `DNSServer`。需要按客户端来源转发时，增加 `DNSRoutes`（写法与 `DNSServer` 相同，多条规则用分号或换行分隔）：
+
+```xml
+<DNSServer>udp://223.5.5.5,udp://223.4.4.4</DNSServer>
+<DNSRoutes>10.0.0.0/8=udp://1.1.1.1,udp://1.0.0.1;192.168.1.10=udp://8.8.8.8;192.168.1.1-192.168.1.200=udp://9.9.9.9</DNSRoutes>
+```
+
+- 来源可以是单个 IP、CIDR（如 `192.168.0.0/16`、`2001:db8::/32`）或起止范围（如 `192.168.1.1-192.168.1.200`）。
+- 等号右侧是该来源使用的上级，多个用逗号分隔，例如 `udp://1.1.1.1,tcp://1.0.0.1`。
+- 同时命中多条时，前缀更长的规则优先；长度相同则配置里靠前的规则优先。
+- 没有规则命中时，仍走原来的 `DNSServer`。域名规则表里的指定解析优先于来源路由。
+
 ## 新生命开源项目矩阵
 各项目默认支持net4.5/net4.0/netstandard2.0  
 
