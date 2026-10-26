@@ -8,6 +8,7 @@ using Xunit;
 
 namespace NewLife.DNSServer.Tests;
 
+[Collection("LoopbackDns")]
 public class SourceRouteForwardTests
 {
     [Fact]

@@ -1,0 +1,278 @@
+@model NewLife.DNS.Server.DnsForwardDraft
+@{
+    var errors = ViewBag.Errors as IEnumerable<String>;
+    var success = TempData["Success"] as String;
+    var configFile = ViewBag.ConfigFile as String;
+    if (Model.Routes == null || Model.Routes.Count == 0)
+        Model.Routes = new List<NewLife.DNS.Server.DnsRouteDraft> { new NewLife.DNS.Server.DnsRouteDraft() };
+    if (Model.Groups == null || Model.Groups.Count == 0)
+        Model.Groups = new List<NewLife.DNS.Server.DnsGroupDraft>
+        {
+            new NewLife.DNS.Server.DnsGroupDraft
+            {
+                Patterns = new List<NewLife.DNS.Server.DnsPatternDraft> { new NewLife.DNS.Server.DnsPatternDraft() }
+            }
+        };
+    foreach (var group in Model.Groups)
+    {
+        if (group.Patterns == null || group.Patterns.Count == 0)
+            group.Patterns = new List<NewLife.DNS.Server.DnsPatternDraft> { new NewLife.DNS.Server.DnsPatternDraft() };
+    }
+}
+<div class="row">
+    <div class="col-md-12">
+        @if (!String.IsNullOrEmpty(success))
+        {
+            <div class="alert alert-success">@success</div>
+        }
+        @if (errors != null)
+        {
+            <div class="alert alert-danger">
+                @foreach (var error in errors)
+                {
+                    <div>@error</div>
+                }
+            </div>
+        }
+        @if (Model.Warnings != null && Model.Warnings.Count > 0)
+        {
+            <div class="alert alert-warning">
+                <strong>读取配置时跳过了这些片段，保存后不会写回：</strong>
+                @foreach (var warning in Model.Warnings)
+                {
+                    <div>@warning</div>
+                }
+            </div>
+        }
+        <p class="help-block">
+            优先级：本地规则 &gt; 域名组 DomainGroups &gt; 来源路由 DNSRoutes &gt; 默认上级 DNSServer。
+            命中域名组或来源路由后，该组上级全部无应答时返回 SERVFAIL，不再改走下一级。
+            保存写入 <code>@configFile</code>。DNS 服务大约每 15 秒检查这份文件，变更后通常 15～30 秒内生效，不必重启。
+            管理站和 DNS 服务不在同一目录时，需要改的是服务程序旁边的那份配置。
+        </p>
+        <form method="post" action="@Url.Action("Save")" class="form-horizontal" id="forward-form">
+            @Html.AntiForgeryToken()
+            <div class="panel panel-default">
+                <div class="panel-heading"><strong>默认上级 DNSServer</strong></div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label class="control-label col-xs-2 col-md-3" for="DNSServer">上级列表</label>
+                        <div class="col-xs-10 col-md-6">
+                            <input class="form-control" id="DNSServer" name="DNSServer" value="@Model.DNSServer" placeholder="udp://223.5.5.5,tcp://8.8.8.8" />
+                        </div>
+                        <span class="hidden-xs col-md-3 help-block">逗号分隔，写法与原来的 DNSServer 相同。留空则只用本机 DNS。</span>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>来源路由 DNSRoutes</strong>
+                    <button type="button" class="btn btn-primary btn-xs pull-right" id="add-route"><i class="glyphicon glyphicon-plus"></i> 添加</button>
+                </div>
+                <div class="panel-body" id="routes">
+                    @for (var i = 0; i < Model.Routes.Count; i++)
+                    {
+                        var route = Model.Routes[i];
+                        <div class="form-group route-row">
+                            <label class="control-label col-xs-2 col-md-3">来源</label>
+                            <div class="col-xs-10 col-md-3">
+                                <input class="form-control" data-field="Source" name="Routes[@i].Source" value="@route.Source" placeholder="10.0.0.0/8 或 192.168.1.1-192.168.1.200" />
+                            </div>
+                            <div class="col-xs-10 col-xs-offset-2 col-md-4 col-md-offset-0">
+                                <input class="form-control" data-field="Servers" name="Routes[@i].Servers" value="@route.Servers" placeholder="udp://1.1.1.1,udp://1.0.0.1" />
+                            </div>
+                            <div class="col-xs-10 col-xs-offset-2 col-md-2 col-md-offset-0">
+                                <button type="button" class="btn btn-danger btn-sm" data-remove="route"><i class="glyphicon glyphicon-remove"></i> 删除</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>域名组 DomainGroups</strong>
+                    <button type="button" class="btn btn-primary btn-xs pull-right" id="add-group"><i class="glyphicon glyphicon-plus"></i> 添加域名组</button>
+                </div>
+                <div class="panel-body" id="groups">
+                    @for (var i = 0; i < Model.Groups.Count; i++)
+                    {
+                        var group = Model.Groups[i];
+                        <div class="well group-card">
+                            <div class="form-group">
+                                <label class="control-label col-xs-2 col-md-3">上级列表</label>
+                                <div class="col-xs-8 col-md-6">
+                                    <input class="form-control" data-field="Servers" name="Groups[@i].Servers" value="@group.Servers" placeholder="udp://8.8.8.8,udp://8.8.4.4" />
+                                </div>
+                                <div class="col-xs-2 col-md-3">
+                                    <button type="button" class="btn btn-danger btn-sm" data-remove="group"><i class="glyphicon glyphicon-remove"></i> 删除本组</button>
+                                </div>
+                            </div>
+                            <div class="patterns">
+                                @for (var j = 0; j < group.Patterns.Count; j++)
+                                {
+                                    var pattern = group.Patterns[j];
+                                    <div class="form-group pattern-row">
+                                        <label class="control-label col-xs-2 col-md-3">域名</label>
+                                        <div class="col-xs-10 col-md-2">
+                                            <select class="form-control" data-field="Kind" name="Groups[@i].Patterns[@j].Kind">
+                                                <option value="Suffix" selected="@(pattern.Kind == "Suffix" ? "selected" : null)">后缀（含自身）</option>
+                                                <option value="Wildcard" selected="@(pattern.Kind == "Wildcard" ? "selected" : null)">*. 仅子域</option>
+                                                <option value="Exact" selected="@(pattern.Kind == "Exact" ? "selected" : null)">exact: 完整匹配</option>
+                                                <option value="Any" selected="@(pattern.Kind == "Any" ? "selected" : null)">* 全部</option>
+                                                <option value="File" selected="@(pattern.Kind == "File" ? "selected" : null)">file: 文件</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-xs-8 col-md-4">
+                                            <input class="form-control" data-field="Name" name="Groups[@i].Patterns[@j].Name" value="@pattern.Name" placeholder="example.com" />
+                                        </div>
+                                        <div class="col-xs-4 col-md-3">
+                                            <button type="button" class="btn btn-danger btn-sm" data-remove="pattern"><i class="glyphicon glyphicon-remove"></i> 删除</button>
+                                        </div>
+                                        <div class="col-xs-10 col-xs-offset-2 col-md-6 col-md-offset-3 file-body" style="@(pattern.Kind == "File" ? "" : "display:none")">
+                                            <textarea class="form-control" rows="6" data-field="FileBody" name="Groups[@i].Patterns[@j].FileBody" placeholder="每行一个域名，可用 exact:、*. 和 # 注释。留空则沿用磁盘上已有文件。">@pattern.FileBody</textarea>
+                                            <span class="help-block">路径相对配置目录，例如 Config/dns-groups/ads.txt。不要写绝对路径或 .. 。</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-3 col-md-6">
+                                    <button type="button" class="btn btn-info btn-sm" data-add-pattern><i class="glyphicon glyphicon-plus"></i> 添加域名</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="clearfix form-actions">
+                <label class="control-label col-xs-4 col-sm-5 col-md-5"></label>
+                <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-save"></i><strong>保存</strong></button>
+                <button type="button" class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
+            </div>
+        </form>
+    </div>
+</div>
+<template id="route-template">
+    <div class="form-group route-row">
+        <label class="control-label col-xs-2 col-md-3">来源</label>
+        <div class="col-xs-10 col-md-3">
+            <input class="form-control" data-field="Source" placeholder="10.0.0.0/8 或 192.168.1.1-192.168.1.200" />
+        </div>
+        <div class="col-xs-10 col-xs-offset-2 col-md-4 col-md-offset-0">
+            <input class="form-control" data-field="Servers" placeholder="udp://1.1.1.1,udp://1.0.0.1" />
+        </div>
+        <div class="col-xs-10 col-xs-offset-2 col-md-2 col-md-offset-0">
+            <button type="button" class="btn btn-danger btn-sm" data-remove="route"><i class="glyphicon glyphicon-remove"></i> 删除</button>
+        </div>
+    </div>
+</template>
+<template id="group-template">
+    <div class="well group-card">
+        <div class="form-group">
+            <label class="control-label col-xs-2 col-md-3">上级列表</label>
+            <div class="col-xs-8 col-md-6">
+                <input class="form-control" data-field="Servers" placeholder="udp://8.8.8.8,udp://8.8.4.4" />
+            </div>
+            <div class="col-xs-2 col-md-3">
+                <button type="button" class="btn btn-danger btn-sm" data-remove="group"><i class="glyphicon glyphicon-remove"></i> 删除本组</button>
+            </div>
+        </div>
+        <div class="patterns"></div>
+        <div class="form-group">
+            <div class="col-md-offset-3 col-md-6">
+                <button type="button" class="btn btn-info btn-sm" data-add-pattern><i class="glyphicon glyphicon-plus"></i> 添加域名</button>
+            </div>
+        </div>
+    </div>
+</template>
+<template id="pattern-template">
+    <div class="form-group pattern-row">
+        <label class="control-label col-xs-2 col-md-3">域名</label>
+        <div class="col-xs-10 col-md-2">
+            <select class="form-control" data-field="Kind">
+                <option value="Suffix">后缀（含自身）</option>
+                <option value="Wildcard">*. 仅子域</option>
+                <option value="Exact">exact: 完整匹配</option>
+                <option value="Any">* 全部</option>
+                <option value="File">file: 文件</option>
+            </select>
+        </div>
+        <div class="col-xs-8 col-md-4">
+            <input class="form-control" data-field="Name" placeholder="example.com" />
+        </div>
+        <div class="col-xs-4 col-md-3">
+            <button type="button" class="btn btn-danger btn-sm" data-remove="pattern"><i class="glyphicon glyphicon-remove"></i> 删除</button>
+        </div>
+        <div class="col-xs-10 col-xs-offset-2 col-md-6 col-md-offset-3 file-body" style="display:none">
+            <textarea class="form-control" rows="6" data-field="FileBody" placeholder="每行一个域名，可用 exact:、*. 和 # 注释。留空则沿用磁盘上已有文件。"></textarea>
+            <span class="help-block">路径相对配置目录，例如 Config/dns-groups/ads.txt。不要写绝对路径或 .. 。</span>
+        </div>
+    </div>
+</template>
+<script>
+    (function () {
+        var form = document.getElementById("forward-form");
+        function clone(id) {
+            return document.getElementById(id).content.cloneNode(true).firstElementChild;
+        }
+        function syncKind(row) {
+            var kind = row.querySelector("[data-field=Kind]");
+            var file = row.querySelector(".file-body");
+            var name = row.querySelector("[data-field=Name]");
+            if (!kind || !file) return;
+            var isFile = kind.value === "File";
+            file.style.display = isFile ? "" : "none";
+            if (!name) return;
+            if (kind.value === "File") name.placeholder = "Config/dns-groups/ads.txt";
+            else if (kind.value === "Wildcard") name.placeholder = "example.com";
+            else if (kind.value === "Exact") name.placeholder = "vpn.example.com";
+            else if (kind.value === "Any") name.placeholder = "匹配其余全部查询";
+            else name.placeholder = "example.com";
+        }
+        function bind(root) {
+            root.querySelectorAll(".pattern-row").forEach(syncKind);
+        }
+        document.getElementById("add-route").addEventListener("click", function () {
+            document.getElementById("routes").appendChild(clone("route-template"));
+        });
+        document.getElementById("add-group").addEventListener("click", function () {
+            var card = clone("group-template");
+            card.querySelector(".patterns").appendChild(clone("pattern-template"));
+            document.getElementById("groups").appendChild(card);
+            bind(card);
+        });
+        form.addEventListener("click", function (ev) {
+            var button = ev.target.closest("[data-remove], [data-add-pattern]");
+            if (!button || !form.contains(button)) return;
+            if (button.hasAttribute("data-add-pattern")) {
+                var card = button.closest(".group-card");
+                var row = clone("pattern-template");
+                card.querySelector(".patterns").appendChild(row);
+                syncKind(row);
+                return;
+            }
+            var kind = button.getAttribute("data-remove");
+            var node = button.closest(kind === "group" ? ".group-card" : kind === "pattern" ? ".pattern-row" : ".route-row");
+            if (node) node.remove();
+        });
+        form.addEventListener("change", function (ev) {
+            if (ev.target && ev.target.getAttribute("data-field") === "Kind")
+                syncKind(ev.target.closest(".pattern-row"));
+        });
+        form.addEventListener("submit", function () {
+            document.querySelectorAll("#routes .route-row").forEach(function (row, i) {
+                row.querySelector("[data-field=Source]").name = "Routes[" + i + "].Source";
+                row.querySelector("[data-field=Servers]").name = "Routes[" + i + "].Servers";
+            });
+            document.querySelectorAll("#groups .group-card").forEach(function (card, i) {
+                card.querySelector("[data-field=Servers]").name = "Groups[" + i + "].Servers";
+                card.querySelectorAll(".pattern-row").forEach(function (row, j) {
+                    row.querySelector("[data-field=Kind]").name = "Groups[" + i + "].Patterns[" + j + "].Kind";
+                    row.querySelector("[data-field=Name]").name = "Groups[" + i + "].Patterns[" + j + "].Name";
+                    row.querySelector("[data-field=FileBody]").name = "Groups[" + i + "].Patterns[" + j + "].FileBody";
+                });
+            });
+        });
+        bind(form);
+    })();
+</script>

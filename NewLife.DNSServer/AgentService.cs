@@ -2,6 +2,7 @@
 using NewLife.DNS.Entity;
 using NewLife.Log;
 using NewLife.Net.DNS;
+using NewLife.Threading;
 using XCode;
 
 namespace NewLife.DNS.Server;
@@ -21,6 +22,10 @@ public class AgentService : ServiceBase
 
     #region 核心
     DNSServer Server;
+    TimerX _reload = null!;
+    String _appliedServer = "";
+    String _appliedRoutes = "";
+    String _appliedGroups = "";
 
     public override void StartWork(String reason)
     {
@@ -47,16 +52,7 @@ public class AgentService : ServiceBase
         // 启动服务器。RoutedDnsServer 在 OnRequest 期间提供客户端来源地址。
         var svr = new RoutedDnsServer();
         if (set.Debug) svr.Log = XTrace.Log;
-        //svr.Parent = set.DNSServer + "," + svr.Parent;
-        svr.Parents.AddRange(svr.GetLocalDNS());
-        svr.SetParents(set.DNSServer);
-
-        var routes = DnsRouteTable.Parse(set.DNSRoutes);
-        foreach (var line in routes.Warnings)
-            XTrace.WriteLine(line);
-        svr.Routes = routes;
-        if (routes.Rules.Count > 0)
-            XTrace.WriteLine("已启用来源路由 {0} 条", routes.Rules.Count);
+        ApplyForward(svr, set, false);
 
         svr.OnRequest += Server_OnRequest;
         svr.OnResponse += Server_OnResponse;
@@ -65,12 +61,60 @@ public class AgentService : ServiceBase
         svr.Start();
 
         Server = svr;
+        // 与 Setting 的 ReloadTime 一致。文件变更后，第一次访问仍得到旧值并排队加载，下一次才装到转发器。
+        _reload = new TimerX(ReloadForward, null, 15_000, 15_000);
 
         base.StartWork(reason);
     }
 
+    void ApplyForward(RoutedDnsServer svr, Setting set, Boolean reload)
+    {
+        DnsRuntimeBinder.Apply(svr, set.DNSServer, set.DNSRoutes, set.DomainGroups, out var routes, out var groups);
+        foreach (var line in routes.Warnings)
+            XTrace.WriteLine(line);
+        foreach (var line in groups.Warnings)
+            XTrace.WriteLine(line);
+        if (reload)
+            XTrace.WriteLine("转发配置已重新装载，来源路由 {0} 条，域名组 {1} 个", routes.Rules.Count, groups.Groups.Count);
+        else
+        {
+            if (routes.Rules.Count > 0)
+                XTrace.WriteLine("已启用来源路由 {0} 条", routes.Rules.Count);
+            if (groups.Groups.Count > 0)
+                XTrace.WriteLine("已启用域名组 {0} 个", groups.Groups.Count);
+        }
+
+        _appliedServer = set.DNSServer ?? "";
+        _appliedRoutes = set.DNSRoutes ?? "";
+        _appliedGroups = set.DomainGroups ?? "";
+    }
+
+    void ReloadForward(Object state)
+    {
+        try
+        {
+            var set = Setting.Current;
+            var server = set.DNSServer ?? "";
+            var routes = set.DNSRoutes ?? "";
+            var groups = set.DomainGroups ?? "";
+            if (server == _appliedServer && routes == _appliedRoutes && groups == _appliedGroups) return;
+
+            var svr = Server as RoutedDnsServer;
+            if (svr == null) return;
+            ApplyForward(svr, set, true);
+        }
+        catch (Exception ex)
+        {
+            XTrace.WriteException(ex);
+        }
+    }
+
     public override void StopWork(String reason)
     {
+        var timer = _reload;
+        _reload = null!;
+        timer.TryDispose();
+
         base.StopWork(reason);
 
         var svr = Server;
@@ -90,9 +134,10 @@ public class AgentService : ServiceBase
         // 本地指定规则优先：某个域名解析到哪个 IP，由规则说了算
         var rs = CheckRule(dns);
 
-        // 命中来源路由时不使用全局记录缓存，避免别的上级的结果串到这个客户端。
-        var routed = rs == null && sender is RoutedDnsServer server && server.Routes.Match(RoutedDnsServer.CurrentClient) != null;
-        if (rs == null && !routed) rs = CheckRecord(dns);
+        // 命中域名组或来源路由时不使用全局记录缓存，避免别的上级的结果串进来。
+        var name = dns.Questions != null && dns.Questions.Length > 0 ? dns.Questions[0].Name : null;
+        var isolated = rs == null && sender is RoutedDnsServer routed && routed.IsolatesCache(name, RoutedDnsServer.CurrentClient);
+        if (rs == null && !isolated) rs = CheckRecord(dns);
 
         if (rs != null) e.Response = rs;
     }

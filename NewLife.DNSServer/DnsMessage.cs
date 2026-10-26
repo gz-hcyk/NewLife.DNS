@@ -11,6 +11,19 @@ namespace NewLife.DNS.Server;
 /// </summary>
 public static class DnsMessage
 {
+    /// <summary>读取第一个问题的查询名。</summary>
+    /// <param name="message">DNS 报文。短于头部或没有问题时返回 null</param>
+    /// <returns>报文中的查询名，保留原始大小写，不含末尾点。无法解析时返回 null</returns>
+    /// <remarks>不调用 <see cref="DNSEntity.Read(Byte[], Boolean)"/>。压缩指针按标准展开。</remarks>
+    public static String TryGetQuestionName(Byte[] message)
+    {
+        if (message == null || message.Length < 12) return null;
+        var count = (message[4] << 8) | message[5];
+        if (count <= 0) return null;
+        var offset = 12;
+        return TryReadName(message, ref offset, out var name) ? name : null;
+    }
+
     public static DNSEntity TryParse(Byte[] message)
     {
         if (message == null || message.Length < 12) return null;
